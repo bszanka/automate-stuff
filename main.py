@@ -1,36 +1,43 @@
-import openpyxl
+import PyPDF2
 
-# Taxonomy: Workbook -> Sheet -> Cell
-# IMPORTANT: Sheets are indexed from 0, Rows and Columns are indexed from 1.
+# PDF files are binary files. PyPDF2 start indexing pages at 0. This module can't create PDF files from scratch.
+pdfFile = open('curriculum.pdf', 'rb')
+reader = PyPDF2.PdfFileReader(pdfFile)
+# OR
+# reader = PyPDF2.PdfReader('curriculum.pdf')
 
-# Example 1: Open and Read existing Excel file
+# Number of pages
+print(reader.numPages)
 
-example_wb = openpyxl.load_workbook('example.xlsx')
-example_sheet = example_wb['Sheet1']
-print(example_sheet['A1'].value)
-print(example_sheet.cell(row=1, column=1).value)
+# Extract text from the first page
+page = reader.getPage(0)
+print(page.extractText())
+pdfFile.close()
 
-# Input = Cell's name
+# Write content in a new PDF
+reader1 = PyPDF2.PdfReader('curriculum.pdf')
+reader2 = PyPDF2.PdfReader('graph.pdf')
 
-searchTerm = ''
-while searchTerm != '0':
-    if searchTerm != '':
-        print(example_sheet[searchTerm].value)
-    searchTerm = input()
+# The new PDF
+writer = PyPDF2.PdfWriter()
+for pageNum in range(reader1.numPages):
+    pageToAdd = reader1.getPage(pageNum)
+    writer.addPage(pageToAdd)
 
-# Example 2: Create a workbook, write in it, then save it to the hard drive
+for pageNum in range(reader2.numPages):
+    pageToAdd = reader2.getPage(pageNum)
+    writer.addPage(pageToAdd)
 
-# Create new workbook
-wb = openpyxl.Workbook()
-print(wb.sheetnames)
+outputFile = open('combined.pdf', 'wb')
+writer.write(outputFile)
+outputFile.close()
 
-# Rename sheet
-first_sheet = wb['Sheet']
-first_sheet.title = 'Hello there'
+# Merging example
 
-# Write
-first_sheet['A1'].value = 'First cell'
-first_sheet['A2'].value = 100
-
-# Save
-wb.save('hello.xlsx')
+# mergeFile = PyPDF2.PdfFileMerger()
+#
+# mergeFile.append(PyPDF2.PdfFileReader('file1.pdf', 'rb'))
+#
+# mergeFile.append(PyPDF2.PdfFileReader('file2.pdf', 'rb'))
+#
+# mergeFile.write("NewMergedFile.pdf")
